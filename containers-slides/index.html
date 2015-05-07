@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Containers &mdash; A brief history</title>
+
+		<meta name="description" content="A brief history of Linux containers and the technology behind Docker.">
+		<meta name="author" content="Steven Davidovitz">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/white.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+    <style>
+      p { text-align: left; }
+      .reveal p.author {
+        color: #78A300;
+        text-align: center;
+      }
+    </style>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<div class="slides">
+
+        <section>
+          <h1>A Brief History of Containers</h1>
+          <p class="author"><small>Steven Davidovitz (@steved)</small></p>
+        </section>
+
+        <section>
+          <h3>Machine-Level Virtualization</h3>
+
+          <p>The mechanism by which one machine (OS/CPU/RAM/etc.) can simulate another.</p>
+          <p>Dates to IBM machines of the late-60s. x86 virtualization is barely 20 years old.</p>
+          <p>Performance downsides, but guest VMs are fully isolated from each other.</p>
+
+          <aside class="notes">
+            <p>Very briefly, system virtualization is the mechanics of running an operating
+            system with no knowledge that is not running directly on hardware.</p>
+
+            <p>Processes are completely isolated from each other. They have no knowledge of the manager (hypervisor).</p>
+
+            <p>Performance downsides since there usually has to be translation and / or a middleware between the actual
+            hardware calls.</p>
+
+            <p>Newer techniques have closed the gap, but this is a fundamental characteristic of full virtualization.</p>
+          </aside>
+        </section>
+
+        <section>
+          <h3>OS-Level Virtualization</h3>
+
+          <p>One kernel running (fully) isolated processes without resorting to hardware virtualization.</p>
+          <p>Relatively recent, as in-kernel support for these features have only been added in the last ~15 years.</p>
+
+          <aside class="notes">
+            <p>A way of isolating applications and resources without resorting to full levels of hardware indirection.</p>
+
+            <p>Resource isolation is barely 15 years old and has exploded in popularity in the passed 10. These are containers.</p>
+
+            <p>Performance and resource allocation have been the primary drivers. Without a hypervisor, processes can get (incredibly close to, if not) full performance and much more efficient resource allocation.</p>
+
+            <p>The almighty google has been using operating system virtualization apparently for around 10 years, most likely for the cost efficiency gains.</p>
+          </aside>
+        </section>
+
+        <section>
+          <h3>chroot</h3>
+
+          <p>Earliest (~1982) method of resource isolation. Allows a user to completely isolate a directory tree from the rest of the operating system.</p>
+          <p>No isolation for processes, network, ACL.</p>
+
+          <aside class="notes">
+            <pre style="margin: 0">
+VBoxManage startvm 'container demos' -type headless
+
+sudo chroot --userspec=steve:steve busybox/ ./busybox sh
+./busybox ls -la
+
+ssh steve@192.168.33.50
+sleep infinity & echo $!; fg
+
+./busybox kill pid
+            </pre>
+          </aside>
+        </section>
+
+        <section>
+          <h3>FreeBSD & Solaris</h3>
+
+          <p>Next iteration of operating system-level virtualization. Building on chroot, provides isolation for processes, networking and users.</p>
+          <p>FreeBSD jails were released in 1998 and Solaris containers in 2004.</p>
+
+          <aside class="notes">
+            <p>http://phk.freebsd.dk/pubs/sane2000-jail.pdf</p>
+
+            <p>Nothing to say really, except maybe they were the first full kernel implementations of containers.</p>
+
+            <p>There are some cool things possible with ZFS snapshotting and containers.</p>
+
+            <p>Linux emulation is possible afaik, but not very mature. Essentially, DTrace + Docker + ZFS might be possible.</p>
+
+            <p>Linux VServer and OpenVZ is about as old as solaris containers, but was not first-class kernel supported. It was released as patches</p>
+          </aside>
+        </section>
+
+        <section>
+          <h3>Linux Containers</h3>
+
+          <p>A combination of two features: cgroups and namespace isolation. Less than 10 years old.</p>
+          <p>cgroups (control groups) provides resource control for groups of processes</p>
+          <p>namespace isolation provides the "security" aspect of containers, making sure processes cannot affect one another</p>
+          <p>LXC (LinuX Containers) was the first driver for containers on Linux</p>
+
+          <aside class="notes">
+            <p>These are the buildings blocks of containers</p>
+            <p>LXC brings them together in a usable set of tools</p>
+            <p>The popularity of linux relative to freebsd and solaris is the main driver</p>
+            <p>Not groundbreaking, but this is the most important part of modern container support, as they are first class kernel features.</p>
+          </aside>
+        </section>
+
+        <section>
+          <section>
+            <h3>Docker</h3>
+
+            <p>The new hotness in containers. Open sourced in 2013 by a PaaS called dotCloud.</p>
+            <p>First engine was LXC, but replaced with their own libcontainer driver.</p>
+            <p>A "Dockerfile" defines a series of steps towards packaging up a reusable container.</p>
+            <p>Write once, run everywhere</p>
+
+            <img style="float:right; width:300px;" src="images/Mugatu-So-Hot-Right-Now.jpg" />
+
+            <aside class="notes">
+              <p>Combines a client-server model with an API to manage containers.</p>
+              <p>Essentially, the next step in packaging binaries for Linux. Completely self-contained runtimes including dependencies.</p>
+              <p>It really is the easiest to use solution so far, this explains the popularity.</p>
+              <p>Docker is trying to become your one stop PaaS solution.</p>
+              <p>In terms of real innovation, it builds on the shoulders of the past 20 years of container development with nice wrapping paper.</p>
+            </aside>
+          </section>
+
+          <section>
+            <pre><code style="max-height: 550px;">
+FROM jacobat/ruby:2.1.5-3
+
+RUN apt-get update && apt-get install -y libmysqlclient-dev libsasl2-dev git-core build-essential nodejs libxml2-dev libxslt1-dev pkg-config
+
+RUN mkdir /app
+WORKDIR /app
+
+ADD Gemfile /app/
+ADD Gemfile.lock /app/
+ADD vendor/cache /app/vendor/cache
+RUN bundle install --quiet --local --jobs 4
+
+ADD app /app/app
+ADD lib /app/lib
+
+...
+
+EXPOSE 3000
+
+CMD ["bundle", "exec", "rails", "server"]
+            </code></pre>
+
+            <aside class="notes">
+              <pre style="margin: 0">
+ssh vagrant@192.168.42.45
+
+pgrep -f sleep
+sudo kill {}
+
+docker run --rm -it busybox
+sleep 1000000
+
+docker run --rm -it busybox
+kill {}
+
+htop in one
+
+docker run --rm -it busybox
+dd if=/dev/zero of=/dev/null
+dd if=/dev/zero of=/dev/null | dd if=/dev/zero of=/dev/null
+
+docker run --rm -it --cpuset=0 busybox
+dd if=/dev/zero of=/dev/null | dd if=/dev/zero of=/dev/null
+
+docker run --rm -it --cpuset=0 -c 512 busybox
+dd if=/dev/zero of=/dev/null
+
+docker run --rm -it --cpuset=0 busybox
+seq 1 10000000
+
+docker run --rm -it -v /zendesk/docker-images/mem/:/mem/ -m=50m busybox
+mem/mem
+              </pre>
+            </aside>
+          </section>
+        </section>
+
+        <section>
+          <h3>CoreOS, rkt, systemd-nspawn and appc</h3>
+
+          <p>The "backlash" against Docker's monopolization of the recent container efforts.</p>
+          <p>appc (app container specification) is an attempt to standardize on one format for images, discovery and runtimes</p>
+          <p>rkt is an alternative runtime for containers without a server model</p>
+          <p>systemd-nspawn is another LXC alternative that ships with systemd</p>
+
+          <aside class="notes">
+            <p>CoreOS competes with Docker on creating PaaS systems.</p>
+            <p>appc is an attempt to bridge the gap, but it really isn't selfless</p>
+            <p>CoreOS's rkt is their runtime to run ACI (app container images), but does not use a client-server model. Instead it tries to work with the init system (ostensibly systemd). It can run docker images.</p>
+            <p>systemd (the new replacement init system) has their own LXC-type replacement, nspawn, but it's still very new</p>
+            <p>https://github.com/appc</p>
+          </aside>
+        </section>
+
+        <section>
+          <h3>Containers @ Zendesk (a.k.a. Meatballs)</h3>
+
+          <p>We're still very early in the process of "Docker-izing" our infrastructure</p>
+          <p>zendesk/docker-images is in the public beta stage and we'd love for everyone to test it out</p>
+          <p>"cattle not pets"</p>
+
+          <aside class="notes">
+            <p>We are all in on docker</p>
+            <p>The value it proposes: build once run everywhere is very important to our infrastructure requirements</p>
+            <p>The quote "cattle not pets" is floated around. Essentially, application runtimes should be able to be killed and brought up anywhere else</p>
+            <p>zdi is a nice wrapper around docker, but play around and get to know it</p>
+          </aside>
+        </section>
+
+        <section>
+          <h1>questions?</h1>
+          <small>sdavidovitz@zendesk.com</small>
+        </section>
+
+      </div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+        width: 1280,
+        height: 720,
+
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+        overview: false,
+        previewLinks: true,
+
+				transition: 'none', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
